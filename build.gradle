@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'com.bmuschko.nexus'
 apply plugin: 'org.standardout.versioneye'
 
-version = '2.4.0'
+version = '2.5.0'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -34,7 +34,7 @@ buildscript {
 }
 
 ext {
-    log4jVersion = '2.11.1'
+    log4jVersion = '2.8.2'
 }
 
 modifyPom {
