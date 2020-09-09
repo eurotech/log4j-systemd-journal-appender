@@ -152,12 +152,12 @@ public class SystemdJournalAppender extends AbstractAppender {
         }
 
         if (logLoggerName) {
-            args.add("LOG4J_LOGGER=%s");
+            args.add("ESF_LOGGER=%s");
             args.add(event.getLoggerName());
         }
 
         if (logAppenderName) {
-            args.add("LOG4J_APPENDER=%s");
+            args.add("ESF_APPENDER=%s");
             args.add(getName());
         }
 
