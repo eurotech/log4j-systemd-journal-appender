@@ -132,9 +132,9 @@ public class SystemdJournalAppenderTest {
         expectedArgs.add(6);
         expectedArgs.add("THREAD_NAME=%s");
         expectedArgs.add("the thread");
-        expectedArgs.add("LOG4J_LOGGER=%s");
+        expectedArgs.add("ESF_LOGGER=%s");
         expectedArgs.add("some logger");
-        expectedArgs.add("LOG4J_APPENDER=%s");
+        expectedArgs.add("ESF_APPENDER=%s");
         expectedArgs.add("Journal");
         expectedArgs.add("THREAD_CONTEXT_FOO_S_1_D=%s");
         expectedArgs.add("bar");
