@@ -1,4 +1,5 @@
 .*.swp
+.DS_Store
 /.idea
 /*.iml
 /.classpath
@@ -7,12 +8,14 @@
 /.gradle
 /target
 /build
+.metadata/
 
 *.class
 *.so
 bin/
 build/
 out/
+META-INF/
 
 hs_err_pid*.log
 
