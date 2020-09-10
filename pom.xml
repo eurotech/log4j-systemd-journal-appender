@@ -9,7 +9,17 @@
 	<properties>
     	<maven.compiler.target>1.8</maven.compiler.target>
     	<maven.compiler.source>1.8</maven.compiler.source>
+    	<skip.artifact.signing>true</skip.artifact.signing>
 	</properties>
+	
+	<profiles>
+    	<profile>
+        	<id>sign-artifacts</id>
+        	<properties>
+            	<skip.artifact.signing>false</skip.artifact.signing>
+        	</properties>
+    	</profile>
+  	</profiles>
 	
 	<dependencies>
     	<dependency>
@@ -76,6 +86,34 @@
                         <Export-Package>de.bwaldvogel</Export-Package>
                     </instructions>
 				</configuration>
+			</plugin>
+			<plugin>
+        		<groupId>org.apache.maven.plugins</groupId>
+    			<artifactId>maven-jarsigner-plugin</artifactId>
+    			<version>1.4</version>
+    			<executions>
+    				<execution>
+        				<id>sign</id>
+        				<goals>
+        					<goal>sign</goal>
+        				</goals>
+    				</execution>
+    			</executions>
+    			<configuration>
+        			<skip>${skip.artifact.signing}</skip>
+        			<storetype>${keystore.type}</storetype>
+        			<keystore>${addon.keystore.path}</keystore>
+        			<alias>${addon.key.alias}</alias>
+        			<storepass>${addon.keystore.password}</storepass>
+        			<keypass>${addon.key.password}</keypass>
+        			<arguments>
+            			<argument>-tsa</argument>
+            			<argument>http://timestamp.digicert.com</argument>
+        			</arguments>
+        			<archiverConfig>
+            			<compress>false</compress>
+        			</archiverConfig>
+    			</configuration>
 			</plugin>
 		</plugins>
 		<resources>
