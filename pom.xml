@@ -5,13 +5,13 @@
 	<artifactId>log4j-systemd-journal-appender</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>bundle</packaging>
-	
+
 	<properties>
     	<maven.compiler.target>1.8</maven.compiler.target>
     	<maven.compiler.source>1.8</maven.compiler.source>
     	<skip.artifact.signing>true</skip.artifact.signing>
 	</properties>
-	
+
 	<profiles>
     	<profile>
         	<id>sign-artifacts</id>
@@ -20,7 +20,7 @@
         	</properties>
     	</profile>
   	</profiles>
-	
+
 	<dependencies>
     	<dependency>
       		<groupId>org.apache.logging.log4j</groupId>
@@ -126,4 +126,17 @@
             </resource>
         </resources>
 	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>artifactory-esf-release</id>
+			<name>Eurotech Artifactory Repository - Releases</name>
+			<url>https://artifactory.everyware-cloud.com/artifactory/esf-release</url>
+		</repository>
+		<snapshotRepository>
+			<id>artifactory-esf-snapshot</id>
+			<name>Eurotech Artifactory Repository - Snapshots</name>
+			<url>https://artifactory.everyware-cloud.com/artifactory/esf-snapshot</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>
