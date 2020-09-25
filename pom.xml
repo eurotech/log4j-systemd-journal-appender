@@ -101,20 +101,20 @@
     				</execution>
     			</executions>
     			<configuration>
-        			<skip>${skip.artifact.signing}</skip>
-        			<storetype>${keystore.type}</storetype>
-        			<keystore>${addon.keystore.path}</keystore>
-        			<alias>${addon.key.alias}</alias>
-        			<storepass>${addon.keystore.password}</storepass>
-        			<keypass>${addon.key.password}</keypass>
-        			<arguments>
-            			<argument>-tsa</argument>
-            			<argument>http://timestamp.digicert.com</argument>
-        			</arguments>
-        			<archiverConfig>
-            			<compress>false</compress>
-        			</archiverConfig>
-    			</configuration>
+                    <skip>${skip.artifact.signing}</skip>
+                    <storetype>${keystore.type}</storetype>
+                    <keystore>${bundle.keystore.path}</keystore>
+                    <alias>${bundle.key.alias}</alias>
+                    <storepass>${bundle.keystore.password}</storepass>
+                    <keypass>${bundle.key.password}</keypass>
+                    <arguments>
+                        <argument>-tsa</argument>
+                        <argument>http://timestamp.digicert.com</argument>
+                    </arguments>
+                    <archiverConfig>
+                        <compress>false</compress>
+                    </archiverConfig>
+                </configuration>
 			</plugin>
 		</plugins>
 		<resources>
