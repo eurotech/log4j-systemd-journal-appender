@@ -159,7 +159,7 @@ public class SystemdJournalAppender extends AbstractAppender {
 
         if (logLoggerName) {
             if (logLoggerAppName != null && !logLoggerAppName.isEmpty()) {
-                args.add(logLoggerAppName + "=%s");
+                args.add(logLoggerAppName + "_LOGGER=%s");
             } else {
                 args.add("LOG4J_LOGGER=%s");
             }
