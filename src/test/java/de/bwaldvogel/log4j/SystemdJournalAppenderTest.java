@@ -134,7 +134,7 @@ public class SystemdJournalAppenderTest {
         expectedArgs.add(6);
         expectedArgs.add("THREAD_NAME=%s");
         expectedArgs.add("the thread");
-        expectedArgs.add("TEST_LOGGER_NAME=%s");
+        expectedArgs.add("TEST_LOGGER_NAME_LOGGER=%s");
         expectedArgs.add("some logger");
         expectedArgs.add("LOG4J_APPENDER=%s");
         expectedArgs.add("Journal");
