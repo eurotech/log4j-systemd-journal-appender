@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.eurotech.framework.log</groupId>
 	<artifactId>log4j-systemd-journal-appender</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<packaging>bundle</packaging>
 
 	<properties>
