@@ -1,0 +1,18 @@
+---
+exclusions:
+  - "**/.git/**/*"
+  - "**/.github/**/*"
+  - "**/target/**/*"
+  - "**/RELEASE_INFO/**/*"
+  - "**/.settings/**/*"
+  - "**/.classpath"
+  - "**/.project"
+
+tasks:
+  - selector:
+      release
+    actions:
+      - print
+      - transform_version:
+        - add_patch: 1
+        - snapshot: set
