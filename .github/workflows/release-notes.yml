@@ -1,0 +1,15 @@
+name: "Release Notes automation"
+
+on:
+  workflow_dispatch:
+    inputs:
+        starting_commit:
+          type: string
+          description: Commit from which to start generating the release notes (non-inclusive)
+          required: true
+
+jobs:
+  call-workflow-in-public-repo:
+    uses: eurotech/add-ons-automation/.github/workflows/_shared-release-notes.yml@main
+    with:
+      starting_commit: ${{ inputs.starting_commit }}
