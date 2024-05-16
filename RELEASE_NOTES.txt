@@ -1,0 +1,11 @@
+log4j-systemd-journal-appender - 1.0.2
+
+Release Date: May 2024
+
+Description:
+    Updated signing key to "EUROTECH S.p.A. ESF Software Signing 2024"
+
+NOTE: The bundles in this add-on have been signed with the following key:
+      "EUROTECH S.p.A. ESF Software Signing 2024".
+      Please see https://esf.eurotech.com/docs/bundle-signing for more information about
+      bundle signing and signature verification.
