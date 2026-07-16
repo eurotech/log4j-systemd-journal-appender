@@ -9,6 +9,7 @@
 /target
 /build
 .metadata/
+.vscode
 
 *.class
 *.so

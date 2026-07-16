@@ -1,151 +1,131 @@
 package de.bwaldvogel.log4j;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.ThreadContext;
-import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.impl.Log4jLogEvent;
-import org.apache.logging.log4j.message.Message;
-import org.apache.logging.log4j.spi.DefaultThreadContextMap;
-import org.junit.Before;
+import org.apache.logging.log4j.message.SimpleMessage;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+/**
+ * Feature: append log events through the journal socket.
+ */
 public class SystemdJournalAppenderTest {
 
-    @Mock
-    private SystemdJournalLibrary journalLibrary;
+    private CapturingJournalSocket journalSocket;
+    private SystemdJournalAppender appender;
+    private Exception appendError;
 
-    @Mock
-    private Message message;
+    @Test
+    public void appendedEventIsEncodedAndSentThroughTheSocket() {
+        givenJournalAppender();
 
-    @Before
-    public void prepare() {
-        ThreadContext.clearAll();
+        whenEventIsAppended(Level.INFO, "hello");
+
+        thenNumberOfSentDatagramsIs(1);
+        thenSentDatagramHasField(0, "MESSAGE", "hello");
+        thenSentDatagramHasField(0, "PRIORITY", "6");
     }
 
     @Test
-    public void testAppend_Simple() {
-        SystemdJournalAppender journalAppender = new SystemdJournalAppender("Journal", null, null, false,
-                journalLibrary, false, false, false, false, false, false, null, null, null, null);
+    public void appendedEventCarriesTheCurrentProcessPid() {
+        givenJournalAppender();
 
-        when(message.getFormattedMessage()).thenReturn("some message");
-        LogEvent event = new Log4jLogEvent.Builder().setMessage(message).setLevel(Level.INFO).build();
+        whenEventIsAppended(Level.INFO, "hello");
 
-        journalAppender.append(event);
-
-        List<Object> expectedArgs = new ArrayList<>();
-        expectedArgs.add("some message");
-        expectedArgs.add("PRIORITY=%d");
-        expectedArgs.add(6);
-        expectedArgs.add(null);
-
-        verify(journalLibrary).sd_journal_send("MESSAGE=%s", expectedArgs.toArray());
+        thenSentDatagramHasField(0, "SYSLOG_PID", String.valueOf(ProcessHandle.current().pid()));
     }
 
     @Test
-    public void testAppend_LogSource() {
+    public void appendedEventsAreSentInOrder() {
+        givenJournalAppender();
 
-        SystemdJournalAppender journalAppender = new SystemdJournalAppender("Journal", null, null, false,
-                journalLibrary, true, false, false, false, false, false, null, null, null, null);
+        whenEventIsAppended(Level.INFO, "first");
+        whenEventIsAppended(Level.WARN, "second");
+        whenEventIsAppended(Level.ERROR, "third");
 
-        when(message.getFormattedMessage()).thenReturn("some message");
-        LogEvent event = new Log4jLogEvent.Builder() //
-                .setMessage(message)//
-                .setLoggerFqcn(journalAppender.getClass().getName())//
-                .setLevel(Level.INFO).build();
-        event.setIncludeLocation(true);
-
-        journalAppender.append(event);
-
-        List<Object> expectedArgs = new ArrayList<>();
-        expectedArgs.add("some message");
-        expectedArgs.add("PRIORITY=%d");
-        expectedArgs.add(6);
-        expectedArgs.add("CODE_FILE=%s");
-        expectedArgs.add("SystemdJournalAppenderTest.java");
-        expectedArgs.add("CODE_FUNC=%s");
-        expectedArgs.add("testAppend_LogSource");
-        expectedArgs.add("CODE_LINE=%d");
-        expectedArgs.add(Integer.valueOf(68));
-        expectedArgs.add(null);
-
-        verify(journalLibrary).sd_journal_send("MESSAGE=%s", expectedArgs.toArray());
+        thenNumberOfSentDatagramsIs(3);
+        thenSentDatagramHasField(0, "MESSAGE", "first");
+        thenSentDatagramHasField(1, "MESSAGE", "second");
+        thenSentDatagramHasField(2, "MESSAGE", "third");
     }
 
     @Test
-    public void testAppend_DoNotLogException() {
+    public void appendedEventHonoursTheAppenderConfiguration() {
+        givenJournalAppenderWithThreadNameLogging();
 
-        SystemdJournalAppender journalAppender = new SystemdJournalAppender("Journal", null, null, false,
-                journalLibrary, false, false, false, false, false, false, null, null, null, null);
+        whenEventIsAppended(Level.INFO, "hello");
 
-        when(message.getFormattedMessage()).thenReturn("some message");
-
-        LogEvent event = new Log4jLogEvent.Builder() //
-                .setMessage(message)//
-                .setLoggerFqcn(journalAppender.getClass().getName())//
-                .setThrown(new Throwable()) //
-                .setLevel(Level.INFO).build();
-        event.setIncludeLocation(true);
-
-        journalAppender.append(event);
-
-        List<Object> expectedArgs = new ArrayList<>();
-        expectedArgs.add("some message");
-        expectedArgs.add("PRIORITY=%d");
-        expectedArgs.add(6);
-        expectedArgs.add(null);
-
-        verify(journalLibrary).sd_journal_send("MESSAGE=%s", expectedArgs.toArray());
+        thenSentDatagramContainsField(0, "THREAD_NAME");
+        thenSentDatagramHasField(0, "LOG4J_APPENDER", "TestJournal");
     }
 
     @Test
-    public void testAppend_ThreadAndContext() {
+    public void appendingEventWithUnmappableLevelRaisesAnError() {
+        givenJournalAppender();
 
-        SystemdJournalAppender journalAppender = new SystemdJournalAppender("Journal", null, null, false,
-                journalLibrary, false, false, true, true, true, true, null, "some-identifier", "3", "TEST_LOGGER_NAME");
+        whenEventIsAppended(Level.OFF, "cannot be mapped");
 
-        when(message.getFormattedMessage()).thenReturn("some message");
+        thenAppendFailedWith(IllegalArgumentException.class);
+        thenNumberOfSentDatagramsIs(0);
+    }
 
-        DefaultThreadContextMap contextMap = new DefaultThreadContextMap();
-        LogEvent event = mock(LogEvent.class);
-        when(event.getMessage()).thenReturn(message);
-        when(event.getLoggerName()).thenReturn("some logger");
-        when(event.getLevel()).thenReturn(Level.INFO);
-        when(event.getThreadName()).thenReturn("the thread");
-        when(event.getContextData()).thenReturn(contextMap);
+    private void givenJournalAppender() {
+        journalSocket = new CapturingJournalSocket();
+        AppenderConfiguration configuration = AppenderConfiguration.builder("TestJournal").build();
+        appender = new SystemdJournalAppender(journalSocket, configuration);
+    }
 
-        contextMap.put("foo%s$1%d", "bar");
+    private void givenJournalAppenderWithThreadNameLogging() {
+        journalSocket = new CapturingJournalSocket();
+        AppenderConfiguration configuration = AppenderConfiguration.builder("TestJournal") //
+                .logThreadName(true) //
+                .logAppenderName(true) //
+                .build();
+        appender = new SystemdJournalAppender(journalSocket, configuration);
+    }
 
-        journalAppender.append(event);
+    private void whenEventIsAppended(Level level, String message) {
+        Log4jLogEvent event = new Log4jLogEvent.Builder() //
+                .setLevel(level) //
+                .setMessage(new SimpleMessage(message)) //
+                .setThreadName(Thread.currentThread().getName()) //
+                .build();
+        try {
+            appender.append(event);
+        } catch (Exception e) {
+            appendError = e;
+        }
+    }
 
-        List<Object> expectedArgs = new ArrayList<>();
-        expectedArgs.add("some message");
-        expectedArgs.add("PRIORITY=%d");
-        expectedArgs.add(6);
-        expectedArgs.add("THREAD_NAME=%s");
-        expectedArgs.add("the thread");
-        expectedArgs.add("TEST_LOGGER_NAME_LOGGER=%s");
-        expectedArgs.add("some logger");
-        expectedArgs.add("LOG4J_APPENDER=%s");
-        expectedArgs.add("Journal");
-        expectedArgs.add("THREAD_CONTEXT_FOO_S_1_D=%s");
-        expectedArgs.add("bar");
-        expectedArgs.add("SYSLOG_IDENTIFIER=%s");
-        expectedArgs.add("some-identifier");
-        expectedArgs.add("SYSLOG_FACILITY=%d");
-        expectedArgs.add(3);
-        expectedArgs.add(null);
+    private void thenNumberOfSentDatagramsIs(int expectedCount) {
+        assertEquals(expectedCount, journalSocket.getSentDatagrams().size());
+    }
 
-        verify(journalLibrary).sd_journal_send("MESSAGE=%s", expectedArgs.toArray());
+    private void thenSentDatagramHasField(int datagramIndex, String key, String expectedValue) {
+        thenAppendSucceeded();
+        Map<String, String> fields = JournalProtocol.parse(journalSocket.getSentDatagrams().get(datagramIndex));
+        assertEquals(expectedValue, fields.get(key));
+    }
+
+    private void thenSentDatagramContainsField(int datagramIndex, String key) {
+        thenAppendSucceeded();
+        Map<String, String> fields = JournalProtocol.parse(journalSocket.getSentDatagrams().get(datagramIndex));
+        assertTrue("Expected field " + key + " to be present in " + fields.keySet(), fields.containsKey(key));
+    }
+
+    private void thenAppendSucceeded() {
+        assertNull("Expected append to succeed but it failed with: " + appendError, appendError);
+    }
+
+    private void thenAppendFailedWith(Class<? extends Exception> expectedType) {
+        assertNotNull("Expected append to fail but it succeeded", appendError);
+        assertTrue("Expected error of type " + expectedType + " but was " + appendError.getClass(),
+                expectedType.isInstance(appendError));
     }
 }

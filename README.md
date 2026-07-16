@@ -36,18 +36,23 @@ For example, if the folder is mounted with "`noexec`" for security reasons, you 
 
 ## Configuration
 
-The appender can be configured with the following properties
+`name` is the only **mandatory** attribute (as with any Log4j appender). Every other property
+below is optional and falls back to its listed default when omitted.
 
-Property name         | Default           | Type    | Description
---------------------- | ----------------- | ------- | -----------
-`logSource`           | false             | boolean | Determines whether the log locations are logged. Note that there is a performance overhead when switched on. The data is logged in standard systemd journal fields `CODE_FILE`, `CODE_LINE` and `CODE_FUNC`.
-`logStacktrace`       | true              | boolean | Determines whether the full exception stack trace is logged. This data is logged in the user field `STACKTRACE`.
-`logThreadName`       | true              | boolean | Determines whether the thread name is logged. This data is logged in the user field `THREAD_NAME`.
-`logLoggerName`       | true              | boolean | Determines whether the logger name is logged. This data is logged in the user field `LOG4J_LOGGER`.
-`logAppenderName`     | true              | boolean | Determines whether the appender name is logged. This data is logged in the user field `LOG4J_APPENDER`.
-`logThreadContext`    | true              | boolean | Determines whether the [thread context][thread-context] is logged. Each key/value pair is logged as user field with the `threadContextPrefix` prefix.
-`threadContextPrefix` | `THREAD_CONTEXT_` | String  | Determines how [thread context][thread-context] keys should be prefixed when `logThreadContext` is set to true. Note that keys need to match the regex pattern `[A-Z0-9_]+` and are normalized otherwise.
-`syslogIdentifier`    | null              | String  | This data is logged in the user field `SYSLOG_IDENTIFIER`.  If this is not set, the underlying system will use the command name (usually `java`) instead.
+Property name         | Mandatory | Default           | Type    | Description
+--------------------- | --------- | ----------------- | ------- | -----------
+`name`                | **yes**   | —                 | String  | The appender's name, used to reference it from a `<Logger>`'s `<AppenderRef>`. Also emitted as the `LOG4J_APPENDER` field when `logAppenderName` is enabled.
+`ignoreExceptions`    | no        | true              | boolean | Determines whether exceptions while appending are suppressed (standard Log4j `AbstractAppender` behavior) or allowed to propagate.
+`logSource`           | no        | false             | boolean | Determines whether the log locations are logged. Note that there is a performance overhead when switched on. The data is logged in standard systemd journal fields `CODE_FILE`, `CODE_LINE` and `CODE_FUNC`.
+`logStacktrace`       | no        | true              | boolean | Determines whether the full exception stack trace is logged. This data is logged in the user field `STACKTRACE`.
+`logThreadName`       | no        | true              | boolean | Determines whether the thread name is logged. This data is logged in the user field `THREAD_NAME`.
+`logLoggerName`       | no        | true              | boolean | Determines whether the logger name is logged. This data is logged in the user field `LOG4J_LOGGER` (or `<logLoggerAppName>_LOGGER` if `logLoggerAppName` is set).
+`logAppenderName`     | no        | true              | boolean | Determines whether the appender name is logged. This data is logged in the user field `LOG4J_APPENDER`.
+`logLoggerAppName`    | no        | null              | String  | If set, the logger name is logged under the `<logLoggerAppName>_LOGGER` field instead of the default `LOG4J_LOGGER`.
+`logThreadContext`    | no        | true              | boolean | Determines whether the [thread context][thread-context] is logged. Each key/value pair is logged as user field with the `threadContextPrefix` prefix.
+`threadContextPrefix` | no        | `THREAD_CONTEXT_` | String  | Determines how [thread context][thread-context] keys should be prefixed when `logThreadContext` is set to true. Note that keys need to match the regex pattern `[A-Z0-9_]+` and are normalized otherwise.
+`syslogIdentifier`    | no        | null              | String  | This data is logged in the user field `SYSLOG_IDENTIFIER`.  If this is not set, the underlying system will use the command name (usually `java`) instead.
+`syslogFacility`      | no        | none (disabled)   | int     | If set, must be between 0 and 23 (see `syslog.h`); logged in the user field `SYSLOG_FACILITY`. An out-of-range value fails appender creation with a clear error rather than being silently ignored.
 
 ## Example ##
 
