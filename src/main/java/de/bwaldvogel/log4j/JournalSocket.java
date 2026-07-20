@@ -64,7 +64,7 @@ public class JournalSocket implements AutoCloseable {
                 "Systemd journal socket not found at {}, dropping all log events", this.socketPath);
         } else {
             StatusLogger.getLogger().warn(
-                "Failed to send to systemd journal, will retry on next event: {}", e.getMessage());
+                "Failed to send to systemd journal: {}", e.getMessage() != null ?  e.getMessage() : e.toString());
         }
 
         close();
